@@ -1,0 +1,38 @@
+.container {
+    margin: 20px auto;
+    text-align: center;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+    color: #333;
+  }
+  
+  .noCandidates {
+    color: #777;
+  }
+  
+  .list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .button {
+    padding: 10px 15px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .button:hover {
+    background-color: #ddd;
+  }
+  
+  .selected {
+    background-color: #28a745;
+    color: white;
+  }
+  

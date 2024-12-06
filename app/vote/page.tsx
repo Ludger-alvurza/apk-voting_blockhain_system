@@ -74,6 +74,24 @@ const VotePage: React.FC = () => {
     }
   };
 
+  const checkIfVoted = async () => {
+    const contract = await connectToContract();
+
+    // Cek kalau contract null
+    if (!contract) {
+      setMessage("Contract tidak terhubung. Pastikan wallet lo connect.");
+      return false;
+    }
+
+    const hasVoted = await contract.hasVoted(account);
+    if (hasVoted) {
+      setMessage("Lo udah pernah voting. Cuma bisa sekali, bro!");
+      return true;
+    }
+
+    return false;
+  };
+
   const getBlockData = async () => {
     try {
       const latestBlockNumber = await client.getBlockNumber();
@@ -118,6 +136,7 @@ const VotePage: React.FC = () => {
       return false;
     }
   };
+
   const [candidates, setCandidates] = useState<any[]>([]); // Simpan kandidat
 
   const getCandidates = async () => {
@@ -152,6 +171,8 @@ const VotePage: React.FC = () => {
       alert("Silakan pilih kandidat!");
       return;
     }
+    const hasVoted = await checkIfVoted();
+    if (hasVoted) return;
 
     // Pastikan kandidat yang dipilih valid
     const isValid = await checkCandidateValidity(selectedCandidate);
@@ -192,7 +213,15 @@ const VotePage: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Error saat voting:", error);
-      setMessage("Terjadi kesalahan saat voting. Silakan coba lagi.");
+
+      // Cek reason dari error
+      if (error?.reason?.includes("You have already voted")) {
+        setMessage("Lo udah pernah voting. Cuma bisa sekali, bro!");
+      } else if (error?.reason?.includes("Invalid candidate")) {
+        setMessage("Kandidat yang dipilih nggak valid!");
+      } else {
+        setMessage("Terjadi kesalahan saat voting. Silakan coba lagi.");
+      }
     }
   };
 
@@ -217,7 +246,7 @@ const VotePage: React.FC = () => {
         {candidates.length === 0 ? (
           <p>Tidak ada kandidat yang tersedia.</p>
         ) : (
-          candidates.map((candidate: any) => (
+          candidates.map((candidate) => (
             <button
               key={candidate.id}
               onClick={() => setSelectedCandidate(candidate.id)}
@@ -234,13 +263,10 @@ const VotePage: React.FC = () => {
 
       <button onClick={vote}>Vote</button>
 
-      {message && <p>{message}</p>}
-
-      {blockData && (
-        <div>
-          <h3>Block Data</h3>
-          <pre>{JSON.stringify(blockData, bigIntReplacer, 2)}</pre>
-        </div>
+      {message && (
+        <p style={{ color: message.includes("berhasil") ? "green" : "red" }}>
+          {message}
+        </p>
       )}
     </div>
   );

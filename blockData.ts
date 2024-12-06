@@ -1,25 +1,25 @@
+// blockData.ts
 import { createPublicClient, http, Block } from "viem";
 import { sepolia } from "viem/chains";
 
-// Membuat client menggunakan Alchemy API key untuk Sepolia
+// Membuat client untuk mengambil data block
 const client = createPublicClient({
   chain: sepolia,
   transport: http(
     "https://eth-sepolia.g.alchemy.com/v2/AAIxRJlEf_mZPpsoPNLgjISEIV2U-xzB"
-  ), // Ganti dengan API Key kamu
+  ),
 });
 
-const getBlockData = async () => {
+// Fungsi untuk mendapatkan data block
+export const getBlockData = async () => {
   try {
+    const latestBlockNumber = await client.getBlockNumber();
     const block: Block = await client.getBlock({
-      blockNumber: 123456n, // Ganti dengan nomor block yang valid
+      blockNumber: latestBlockNumber,
     });
-
-    console.log(block);
+    return block;
   } catch (error) {
     console.error("Error fetching block data:", error);
+    throw new Error("Error fetching block data.");
   }
 };
-
-// Panggil fungsi untuk mendapatkan data block
-getBlockData();
