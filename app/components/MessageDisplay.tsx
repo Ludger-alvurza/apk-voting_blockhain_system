@@ -1,19 +1,18 @@
 import React from "react";
-import styles from "../styles/components/MessageDisplay.module.css";
 
-type MessageDisplayProps = {
+interface Props {
   message: string;
-};
+}
 
-const MessageDisplay: React.FC<MessageDisplayProps> = ({ message }) => {
+const MessageDisplay: React.FC<Props> = ({ message }) => {
   if (!message) return null;
 
-  const isSuccess = message.includes("berhasil");
+  const messageColor = message.includes("berhasil")
+    ? "text-green-500"
+    : "text-red-500";
 
   return (
-    <p className={`${styles.message} ${isSuccess ? styles.success : styles.error}`}>
-      {message}
-    </p>
+    <p className={`mt-4 text-lg font-semibold ${messageColor}`}>{message}</p>
   );
 };
 

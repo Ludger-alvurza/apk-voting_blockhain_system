@@ -3,37 +3,20 @@ import React, { useState, useEffect } from "react";
 import { connectToContract } from "../../utils/contract"; // Pastikan connectToContract sudah benar
 import { createPublicClient, http, Block } from "viem";
 import { sepolia } from "viem/chains";
-
-// Membuat client untuk mengambil data block
-const client = createPublicClient({
-  chain: sepolia,
-  transport: http(
-    "https://eth-sepolia.g.alchemy.com/v2/AAIxRJlEf_mZPpsoPNLgjISEIV2U-xzB"
-  ), // Ganti dengan API Key kamu
-});
-
-interface VotingContract {
-  vote(candidateId: number): Promise<any>;
-  candidates(candidateId: number): Promise<any>;
-}
-
-// Type guard untuk memastikan kontrak memiliki metode 'vote' dan 'candidates'
-const isVotingContract = (contract: any): contract is VotingContract => {
-  return (
-    "vote" in contract &&
-    typeof contract.vote === "function" &&
-    "candidates" in contract &&
-    typeof contract.candidates === "function"
-  );
-};
+import Header from "../components/Header";
+import ConnectWalletButton from "../components/ConnectWalletButton";
+import CandidateList from "../components/CandidateList";
+import MessageDisplay from "../components/MessageDisplay";
+import useVoting from "../components/useVoting";
 
 const VotePage: React.FC = () => {
   const [account, setAccount] = useState<string | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<number | null>(
     null
   );
-  const [message, setMessage] = useState<string>("");
-  const [blockData, setBlockData] = useState<Block | null>(null);
+
+  const { candidates, message, setMessage, checkIfVoted, voteForCandidate } =
+    useVoting(account);
 
   const switchToSepolia = async () => {
     const chainId = "0xaa36a7"; // Sepolia chain ID
@@ -49,6 +32,9 @@ const VotePage: React.FC = () => {
       }
     } catch (error) {
       console.error("Error switching to Sepolia:", error);
+      alert(
+        "Failed to switch network. Ensure MetaMask is properly configured."
+      );
     }
   };
 
@@ -66,7 +52,7 @@ const VotePage: React.FC = () => {
           error
         );
         alert(
-          "Error while connecting to wallet. Please check your MetaMask network."
+          "Error connecting to wallet. Please ensure your MetaMask network is set to Sepolia."
         );
       }
     } else {
@@ -74,200 +60,52 @@ const VotePage: React.FC = () => {
     }
   };
 
-  const checkIfVoted = async () => {
-    const contract = await connectToContract();
-
-    // Cek kalau contract null
-    if (!contract) {
-      setMessage("Contract tidak terhubung. Pastikan wallet lo connect.");
-      return false;
-    }
-
-    const hasVoted = await contract.hasVoted(account);
-    if (hasVoted) {
-      setMessage("Lo udah pernah voting. Cuma bisa sekali, bro!");
-      return true;
-    }
-
-    return false;
-  };
-
-  const getBlockData = async () => {
-    try {
-      const latestBlockNumber = await client.getBlockNumber();
-      const block: Block = await client.getBlock({
-        blockNumber: latestBlockNumber,
-      });
-      setBlockData(block);
-    } catch (error) {
-      console.error("Error fetching block data:", error);
-      setMessage("Error fetching block data.");
-    }
-  };
-
-  useEffect(() => {
-    if (account) {
-      getBlockData();
-    }
-  }, [account]);
-
-  const checkCandidateValidity = async (candidateId: number) => {
-    try {
-      const contract = await connectToContract();
-      if (!contract) {
-        setMessage("Contract is not connected.");
-        return false;
-      }
-
-      if (!isVotingContract(contract)) {
-        setMessage("Contract methods not found.");
-        return false;
-      }
-
-      const candidate = await contract.candidates(candidateId); // Cek kandidat berdasarkan ID
-      if (!candidate || candidate.id === 0) {
-        setMessage("Candidate is not valid.");
-        return false;
-      }
-      return true;
-    } catch (error) {
-      console.error("Error checking candidate:", error);
-      setMessage("Error while checking candidate.");
-      return false;
-    }
-  };
-
-  const [candidates, setCandidates] = useState<any[]>([]); // Simpan kandidat
-
-  const getCandidates = async () => {
-    try {
-      const contract = await connectToContract();
-      if (!contract) {
-        setMessage("Contract tidak terhubung.");
-        return;
-      }
-
-      if (!isVotingContract(contract)) {
-        setMessage("Metode kontrak tidak ditemukan.");
-        return;
-      }
-
-      const allCandidates = await contract.getAllCandidates();
-      setCandidates(allCandidates);
-    } catch (error) {
-      console.error("Error mengambil kandidat:", error);
-      setMessage("Error saat mengambil kandidat.");
-    }
-  };
-
-  useEffect(() => {
-    if (account) {
-      getCandidates(); // Ambil kandidat waktu account terhubung
-    }
-  }, [account]);
-
-  const vote = async () => {
+  const handleVote = async () => {
     if (selectedCandidate === null) {
       alert("Silakan pilih kandidat!");
       return;
     }
-    const hasVoted = await checkIfVoted();
-    if (hasVoted) return;
 
-    // Pastikan kandidat yang dipilih valid
-    const isValid = await checkCandidateValidity(selectedCandidate);
-    if (!isValid) {
-      alert("Pilih kandidat yang valid!");
+    const hasVoted = await checkIfVoted();
+    if (hasVoted) {
+      setMessage("Lo udah pernah voting. Cuma bisa sekali, bro!");
       return;
     }
 
     try {
-      const contract = await connectToContract();
-      if (!contract) {
-        setMessage("Contract tidak terhubung.");
-        return;
-      }
-
-      if (!isVotingContract(contract)) {
-        setMessage("Metode kontrak tidak ditemukan.");
-        return;
-      }
-
-      console.log("Mencoba vote untuk kandidat:", selectedCandidate);
-
-      // Lanjutkan proses vote
-      const tx = await contract.vote(selectedCandidate);
-      console.log("Transaksi dikirim:", tx);
-
-      setMessage("Voting berhasil! Menunggu transaksi diproses...");
-
-      // Tunggu transaksi selesai
-      const txReceipt = await tx.wait();
-      console.log("Bukti transaksi:", txReceipt);
-
-      if (txReceipt.status === 0) {
-        console.error("Transaksi gagal dengan alasan revert:", txReceipt);
-        setMessage("Transaksi gagal. Silakan coba lagi.");
-      } else {
-        setMessage("Vote sudah tercatat!");
-      }
+      await voteForCandidate(selectedCandidate);
+      setMessage("Vote sudah tercatat! Terima kasih telah berpartisipasi.");
     } catch (error: any) {
       console.error("Error saat voting:", error);
-
-      // Cek reason dari error
-      if (error?.reason?.includes("You have already voted")) {
-        setMessage("Lo udah pernah voting. Cuma bisa sekali, bro!");
-      } else if (error?.reason?.includes("Invalid candidate")) {
-        setMessage("Kandidat yang dipilih nggak valid!");
-      } else {
-        setMessage("Terjadi kesalahan saat voting. Silakan coba lagi.");
-      }
+      setMessage(
+        error?.reason?.includes("Invalid candidate")
+          ? "Kandidat yang dipilih tidak valid."
+          : "Terjadi kesalahan saat voting. Silakan coba lagi."
+      );
     }
-  };
-
-  const bigIntReplacer = (key: string, value: any) => {
-    if (typeof value === "bigint") {
-      return value.toString();
-    }
-    return value;
   };
 
   return (
-    <div>
-      <h1>Vote for Your Favorite Candidate</h1>
-      {!account ? (
-        <button onClick={connectWallet}>Connect Wallet</button>
-      ) : (
-        <p>Connected as: {account}</p>
-      )}
-
-      <div>
-        <h2>Pilih Kandidat</h2>
-        {candidates.length === 0 ? (
-          <p>Tidak ada kandidat yang tersedia.</p>
-        ) : (
-          candidates.map((candidate) => (
-            <button
-              key={candidate.id}
-              onClick={() => setSelectedCandidate(candidate.id)}
-              style={{
-                backgroundColor:
-                  selectedCandidate === candidate.id ? "green" : "",
-              }}
-            >
-              {candidate.name}
-            </button>
-          ))
-        )}
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
+      <Header />
+      <ConnectWalletButton connectWallet={connectWallet} account={account} />
+      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-md mt-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          Pilih Kandidat
+        </h2>
+        <CandidateList
+          candidates={candidates}
+          selectedCandidate={selectedCandidate}
+          setSelectedCandidate={setSelectedCandidate}
+        />
       </div>
-
-      <button onClick={vote}>Vote</button>
-
-      {message && (
-        <p style={{ color: message.includes("berhasil") ? "green" : "red" }}>
-          {message}
-        </p>
-      )}
+      <button
+        onClick={handleVote}
+        className="mt-6 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all"
+      >
+        Vote
+      </button>
+      <MessageDisplay message={message} />
     </div>
   );
 };

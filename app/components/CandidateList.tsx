@@ -1,39 +1,40 @@
 import React from "react";
-import styles from "../styles/components/CandidateList.module.css";
 
-type Candidate = { id: number; name: string };
+interface Candidate {
+  id: number;
+  name: string;
+}
 
-type CandidateListProps = {
+interface Props {
   candidates: Candidate[];
   selectedCandidate: number | null;
   setSelectedCandidate: (id: number) => void;
-};
+}
 
-const CandidateList: React.FC<CandidateListProps> = ({
+const CandidateList: React.FC<Props> = ({
   candidates,
   selectedCandidate,
   setSelectedCandidate,
 }) => {
-  return (
-    <div className={styles.container}>
-      <h2 className={styles.title}>Pilih Kandidat</h2>
-      {candidates.length === 0 ? (
-        <p className={styles.noCandidates}>Tidak ada kandidat yang tersedia.</p>
-      ) : (
-        <div className={styles.list}>
-          {candidates.map((candidate) => (
-            <button
-              key={candidate.id}
-              onClick={() => setSelectedCandidate(candidate.id)}
-              className={`${styles.button} ${
-                selectedCandidate === candidate.id ? styles.selected : ""
-              }`}
-            >
-              {candidate.name}
-            </button>
-          ))}
-        </div>
-      )}
+  return candidates.length === 0 ? (
+    <p className="text-gray-500 text-center">
+      Tidak ada kandidat yang tersedia.
+    </p>
+  ) : (
+    <div className="grid grid-cols-1 gap-4">
+      {candidates.map((candidate) => (
+        <button
+          key={candidate.id}
+          onClick={() => setSelectedCandidate(candidate.id)}
+          className={`px-4 py-2 w-full text-white rounded-lg transition-all ${
+            selectedCandidate === candidate.id
+              ? "bg-green-500 hover:bg-green-600"
+              : "bg-gray-500 hover:bg-gray-600"
+          }`}
+        >
+          {candidate.name}
+        </button>
+      ))}
     </div>
   );
 };
