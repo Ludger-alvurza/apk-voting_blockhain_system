@@ -17,7 +17,7 @@ const VotingResults = () => {
     if (contract) {
       try {
         await contract.registerCandidate("Ludger");
-        await contract.registerCandidate("Tessy");
+        await contract.registerCandidate("Desi");
         console.log("Candidates registered");
       } catch (error) {
         console.error("Error registering candidates:", error);
