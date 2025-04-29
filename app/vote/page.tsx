@@ -1,19 +1,18 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { connectToContract } from "../../utils/contract"; // Pastikan connectToContract sudah benar
-import { createPublicClient, http, Block } from "viem";
-import { sepolia } from "viem/chains";
+import React, { useState } from "react";
 import Header from "../components/Header";
 import ConnectWalletButton from "../components/ConnectWalletButton";
 import CandidateList from "../components/CandidateList";
 import MessageDisplay from "../components/MessageDisplay";
-import useVoting from "../components/useVoting";
+import useVoting from "../hooks/useVoting";
+import { useTheme } from "../hooks/hooksThemes";
 
 const VotePage: React.FC = () => {
   const [account, setAccount] = useState<string | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<number | null>(
     null
   );
+  const { theme, toggleTheme } = useTheme();
 
   const { candidates, message, setMessage, checkIfVoted, voteForCandidate } =
     useVoting(account);
@@ -86,11 +85,17 @@ const VotePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-lightBg dark:bg-darkBg text-lightText dark:text-darkText transition-all flex flex-col items-center justify-center p-6">
       <Header />
+      <button
+        onClick={toggleTheme}
+        className="px-4 py-2 bg-blue-500 text-white rounded-lg dark:bg-yellow-500"
+      >
+        {theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+      </button>
       <ConnectWalletButton connectWallet={connectWallet} account={account} />
-      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-md mt-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+      <div className="w-full max-w-md bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-6">
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">
           Pilih Kandidat
         </h2>
         <CandidateList
@@ -101,7 +106,7 @@ const VotePage: React.FC = () => {
       </div>
       <button
         onClick={handleVote}
-        className="mt-6 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all"
+        className="mt-6 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 dark:bg-yellow-500 dark:hover:bg-yellow-600 transition-all"
       >
         Vote
       </button>

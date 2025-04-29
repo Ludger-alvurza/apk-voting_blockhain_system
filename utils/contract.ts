@@ -221,7 +221,7 @@ const contractABI: any = [
     type: "function",
   },
 ];
-const contractAddress: string = "0x5648Ba79e6fa1Bd5Bc5776424861Faf34751FCcE";
+const contractAddress: string = "0xDF16B586E8e64b35644F99B56AA5d5d81F7CABDE";
 
 // Fungsi buat nyambungin ke kontrak
 export const connectToContract = async () => {
