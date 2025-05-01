@@ -1,16 +1,10 @@
 import { useState, useEffect } from "react";
 import { connectToContract } from "../../utils/contract";
-import { createPublicClient, http, Block } from "viem";
-import { sepolia } from "viem/chains";
-
-const client = createPublicClient({
-  chain: sepolia,
-  transport: http("https://eth-sepolia.g.alchemy.com/v2/your-api-key"),
-});
 
 const useVoting = (account: string | null) => {
   const [candidates, setCandidates] = useState<any[]>([]);
   const [message, setMessage] = useState<string>("");
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
 
   const getCandidates = async () => {
     try {
@@ -47,6 +41,24 @@ const useVoting = (account: string | null) => {
       return false;
     }
   };
+  const checkIfVerified = async () => {
+    if (!account) return;
+
+    try {
+      const response = await fetch(`/api/verify?address=${account}`);
+      const data = await response.json();
+
+      if (data.isVerified === false) {
+        setIsVerified(false);
+        setMessage("Wallet Anda belum terverifikasi.");
+      } else {
+        setIsVerified(true);
+      }
+    } catch (error) {
+      console.error("Error checking verification status:", error);
+      setMessage("Terjadi kesalahan saat mengecek status verifikasi.");
+    }
+  };
 
   const voteForCandidate = async (candidateId: number): Promise<void> => {
     try {
@@ -79,10 +91,18 @@ const useVoting = (account: string | null) => {
   useEffect(() => {
     if (account) {
       getCandidates();
+      checkIfVerified();
     }
   }, [account]);
 
-  return { candidates, message, setMessage, checkIfVoted, voteForCandidate };
+  return {
+    candidates,
+    message,
+    setMessage,
+    checkIfVoted,
+    voteForCandidate,
+    isVerified,
+  };
 };
 
 export default useVoting;

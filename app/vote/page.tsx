@@ -6,6 +6,7 @@ import CandidateList from "../components/CandidateList";
 import MessageDisplay from "../components/MessageDisplay";
 import useVoting from "../hooks/useVoting";
 import { useTheme } from "../hooks/hooksThemes";
+import BlockInfo from "../components/BlockDataDisplay";
 
 const VotePage: React.FC = () => {
   const [account, setAccount] = useState<string | null>(null);
@@ -14,8 +15,14 @@ const VotePage: React.FC = () => {
   );
   const { theme, toggleTheme } = useTheme();
 
-  const { candidates, message, setMessage, checkIfVoted, voteForCandidate } =
-    useVoting(account);
+  const {
+    candidates,
+    message,
+    setMessage,
+    checkIfVoted,
+    voteForCandidate,
+    isVerified,
+  } = useVoting(account);
 
   const switchToSepolia = async () => {
     const chainId = "0xaa36a7"; // Sepolia chain ID
@@ -65,6 +72,16 @@ const VotePage: React.FC = () => {
       return;
     }
 
+    if (isVerified === null) {
+      setMessage("Menunggu status verifikasi wallet...");
+      return;
+    }
+
+    if (isVerified === false) {
+      setMessage("Wallet Anda belum terverifikasi. Silakan hubungi admin.");
+      return;
+    }
+
     const hasVoted = await checkIfVoted();
     if (hasVoted) {
       setMessage("Lo udah pernah voting. Cuma bisa sekali, bro!");
@@ -111,6 +128,9 @@ const VotePage: React.FC = () => {
         Vote
       </button>
       <MessageDisplay message={message} />
+      <div className="mt-6">
+        <BlockInfo />
+      </div>
     </div>
   );
 };

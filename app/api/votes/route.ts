@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { connectToContract } from "@/utils/contract";
+require("dotenv").config();
 
 export async function GET() {
   try {
     const contract = await connectToContract();
 
-    // Cek kalau contract-nya undefined
     if (!contract) {
       return NextResponse.json(
         { error: "Ethereum wallet not found" },
