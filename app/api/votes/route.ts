@@ -14,6 +14,14 @@ export async function GET() {
     }
 
     const candidates = await contract.getAllCandidates();
+
+    if (candidates.length === 0) {
+      return NextResponse.json(
+        { message: "No candidates found" },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json(candidates);
   } catch (error) {
     console.error("Error fetching data from contract:", error);

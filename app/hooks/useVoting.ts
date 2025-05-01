@@ -15,7 +15,12 @@ const useVoting = (account: string | null) => {
       }
 
       const allCandidates = await contract.getAllCandidates();
-      setCandidates(allCandidates);
+
+      if (allCandidates.length === 0) {
+        setMessage("Belum ada kandidat.");
+      } else {
+        setCandidates(allCandidates);
+      }
     } catch (error) {
       console.error("Error mengambil kandidat:", error);
       setMessage("Error saat mengambil kandidat.");

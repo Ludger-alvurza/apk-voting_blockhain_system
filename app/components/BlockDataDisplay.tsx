@@ -4,17 +4,39 @@ const BlockInfo = () => {
   const [block, setBlock] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchWithTimeout = async (
+    url: string,
+    options: any,
+    timeout = 5000
+  ) => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const response = await fetch(url, { ...options, signal });
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const fetchBlockData = async () => {
       try {
-        const response = await fetch("/api/blockData");
+        const response = await fetchWithTimeout("/api/blockData", {}, 5000); // 5 detik timeout
         if (!response.ok) {
           throw new Error("Failed to fetch block data.");
         }
         const data = await response.json();
         setBlock(data);
       } catch (err) {
-        if (err instanceof Error) {
+        if (err instanceof DOMException && err.name === "AbortError") {
+          setError("Request timed out. Please try again.");
+        } else if (err instanceof Error) {
           setError(err.message);
         } else {
           setError("An unknown error occurred.");

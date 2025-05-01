@@ -2,9 +2,22 @@ import { NextResponse } from "next/server";
 import { ethers } from "ethers";
 import { contractABI, contractAddress } from "@/utils/contract";
 
+const ContractABI = contractABI;
+const ContractAddress = contractAddress;
+const keyPrivate = process.env.PRIVATE_KEY;
+
+if (!keyPrivate) {
+  throw new Error("PRIVATE_KEY is not set in environment variables.");
+}
+
 // Initialize the provider and contract instance
-const provider = new ethers.JsonRpcProvider(`https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`);
-const contract = new ethers.Contract(contractAddress, contractABI, provider);
+const provider = new ethers.JsonRpcProvider(
+  `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+);
+const signer = new ethers.Wallet(keyPrivate, provider);
+
+// Gunakan signer karena kita butuh mengirim transaksi
+const contract = new ethers.Contract(ContractAddress, ContractABI, signer);
 
 export async function GET(request: Request) {
   try {
@@ -12,10 +25,7 @@ export async function GET(request: Request) {
     const address = searchParams.get("address");
 
     if (!address) {
-      return NextResponse.json(
-        { error: "Address missing" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Address missing" }, { status: 400 });
     }
 
     // Cek apakah wallet terverifikasi
@@ -30,6 +40,7 @@ export async function GET(request: Request) {
     );
   }
 }
+
 export async function POST(request: Request) {
   try {
     const { address } = await request.json();
@@ -45,7 +56,7 @@ export async function POST(request: Request) {
     console.log("Address received:", address);
 
     // Cek apakah wallet sudah terverifikasi
-    const isVerified = await contract.isVerifiedWallet(address);
+    const isVerified = await contract.checkWalletVerified(address);
     if (isVerified) {
       return NextResponse.json(
         { message: `Wallet ${address} is already verified.` },
@@ -59,7 +70,9 @@ export async function POST(request: Request) {
     await tx.wait();
     console.log("Transaction confirmed.");
 
-    return NextResponse.json({ message: `Wallet ${address} verified.` });
+    return NextResponse.json({
+      message: `Wallet ${address} success to verified.`,
+    });
   } catch (error) {
     if (error instanceof Error) {
       console.error("Error verifying wallet:", error.message);
