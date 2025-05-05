@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useTheme } from "../hooks/hooksThemes";
 import LogoutButton from "./logout";
 import Link from "next/link";
 
 const Header: React.FC = () => {
   const pathname = usePathname();
-  const router = useRouter();
   const hideHeader = pathname === "/login" || pathname === "/register";
   const { theme, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
