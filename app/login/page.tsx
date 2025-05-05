@@ -140,6 +140,12 @@ const LoginPage: React.FC = () => {
         })
       );
 
+      // Dispatch custom event to notify components about login
+      const authEvent = new CustomEvent("authStateChange", {
+        detail: { action: "login" },
+      });
+      window.dispatchEvent(authEvent);
+
       // Show success message and redirect immediately
       setMessage({ text: "Login successful! Redirecting...", type: "success" });
 

@@ -13,17 +13,29 @@ const LogoutButton: React.FC = () => {
   // Fungsi untuk menangani logout
   const handleLogout = async () => {
     try {
-      // Call the logout API to clear the session
-      const response = await fetch("/api/logout", { method: "POST" });
+      // Call your logout API
+      const response = await fetch("/api/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Include cookies
+      });
 
-      if (!response.ok) {
-        throw new Error("Failed to logout.");
+      if (response.ok) {
+        // Dispatch a custom event to notify components about logout
+        const authEvent = new CustomEvent("authStateChange", {
+          detail: { action: "logout" },
+        });
+        window.dispatchEvent(authEvent);
+
+        // Redirect to login page
+        router.push("/login");
+      } else {
+        console.error("Logout failed");
       }
-
-      // Redirect user to the login page
-      router.push("/login");
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error("Error during logout:", error);
     }
   };
 
