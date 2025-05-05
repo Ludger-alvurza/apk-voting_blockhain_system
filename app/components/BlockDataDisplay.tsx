@@ -58,7 +58,7 @@ const BlockInfo = () => {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-center">
+    <div className="bg-blue-100 dark:bg-black text-blue-900 dark:text-yellow-300 p-6 rounded-lg shadow-lg text-center">
       <h1 className="text-2xl font-bold mb-4">Block Information</h1>
       <p className="text-lg">Block Number: {block?.number?.toString()}</p>
       <p className="text-lg">Hash: {block?.hash}</p>

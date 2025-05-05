@@ -21,14 +21,14 @@ const CandidateList: React.FC<Props> = ({
       Tidak ada kandidat yang tersedia.
     </p>
   ) : (
-    <div className="grid grid-cols-1 gap-4">
+    <div className="grid grid-cols-1 gap-4 bg-gray-100 p-4 rounded-lg shadow-md">
       {candidates.map((candidate) => (
         <button
           key={candidate.id}
           onClick={() => setSelectedCandidate(candidate.id)}
           className={`px-4 py-2 w-full text-white rounded-lg transition-all ${
             selectedCandidate === candidate.id
-              ? "bg-green-500 hover:bg-green-600"
+              ? "bg-yellow-500 hover:bg-yellow-600"
               : "bg-gray-500 hover:bg-gray-600"
           }`}
         >

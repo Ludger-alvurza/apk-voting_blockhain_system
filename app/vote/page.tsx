@@ -1,11 +1,9 @@
 "use client";
 import React, { useState } from "react";
-import Header from "../components/Header";
 import ConnectWalletButton from "../components/ConnectWalletButton";
 import CandidateList from "../components/CandidateList";
 import MessageDisplay from "../components/MessageDisplay";
 import useVoting from "../hooks/useVoting";
-import { useTheme } from "../hooks/hooksThemes";
 import BlockInfo from "../components/BlockDataDisplay";
 
 const VotePage: React.FC = () => {
@@ -13,7 +11,6 @@ const VotePage: React.FC = () => {
   const [selectedCandidate, setSelectedCandidate] = useState<number | null>(
     null
   );
-  const { theme, toggleTheme } = useTheme();
 
   const {
     candidates,
@@ -102,19 +99,10 @@ const VotePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-lightBg dark:bg-darkBg text-lightText dark:text-darkText transition-all flex flex-col items-center justify-center p-6">
-      <Header />
-      <button
-        onClick={toggleTheme}
-        className="px-4 py-2 bg-blue-500 text-white rounded-lg dark:bg-yellow-500"
-      >
-        {theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
-      </button>
+    <div className="min-h-screen text-gray-800 dark:text-gray-200 transition-all flex flex-col items-center justify-center p-6">
       <ConnectWalletButton connectWallet={connectWallet} account={account} />
-      <div className="w-full max-w-md bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-6">
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">
-          Pilih Kandidat
-        </h2>
+      <div className="w-full max-w-md bg-yellow-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-6 rounded-lg shadow-md mt-6 border border-yellow-200 dark:border-gray-700">
+        <h2 className="text-xl font-semibold mb-4">Pilih Kandidat</h2>
         <CandidateList
           candidates={candidates}
           selectedCandidate={selectedCandidate}
@@ -123,7 +111,8 @@ const VotePage: React.FC = () => {
       </div>
       <button
         onClick={handleVote}
-        className="mt-6 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 dark:bg-yellow-500 dark:hover:bg-yellow-600 transition-all"
+        className="mt-6 px-6 py-3 bg-blue-500 hover:bg-blue-600 dark:bg-yellow-500 dark:hover:bg-yellow-600 text-white dark:text-gray-900 rounded-lg transition-all transform hover:scale-105 font-medium"
+        disabled={!account || selectedCandidate === null}
       >
         Vote
       </button>

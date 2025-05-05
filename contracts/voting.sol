@@ -9,9 +9,15 @@ contract Voting {
         string name;
         uint voteCount;
     }
+    struct User {
+        bool registered;
+        bytes32 hashedNIK;
+        bytes signature;
+    }
 
     address public owner;  // Pemilik kontrak
     mapping(address => bool) public isVerifiedWallet;
+    mapping(address => User) public users;
     mapping(address => bool) public hasVoted;  // Tracking apakah alamat udah vote atau belum
     mapping(uint => Candidate) public candidates;  // Menyimpan kandidat berdasarkan ID
     uint public candidatesCount;  // Jumlah kandidat
@@ -21,6 +27,7 @@ contract Voting {
     // Event untuk memberi tahu kalo ada voting baru
     event Voted(address indexed voter, uint indexed candidateId);
     event WalletVerified(address indexed wallet);
+    event UserRegistered(address indexed user, bytes32 hashedNIK, bytes signature);
 
     constructor() {
         owner = msg.sender;
@@ -38,6 +45,61 @@ contract Voting {
         verifiedWallets.push(_wallet);
         emit WalletVerified(_wallet);
     }
+    // Fungsi untuk mendaftar user baru dan verifikasi wallet dengan hashed NIK dan signature
+    function registerUser(bytes32 _hashedNIK, bytes memory _signature) public {
+        // Verifikasi bahwa wallet belum terdaftar sebelumnya
+        require(!users[msg.sender].registered, "User already registered.");
+
+        // Verifikasi signature yang dikirim oleh user
+        address signer = recoverSigner(_hashedNIK, _signature);
+        require(signer == msg.sender, "Invalid signature.");
+
+        // Verifikasi wallet belum diverifikasi
+        require(!isVerifiedWallet[msg.sender], "Your wallet is already verified.");
+
+        // Simpan data user (address, hashed NIK, signature)
+        users[msg.sender] = User({
+            registered: true,
+            hashedNIK: _hashedNIK,
+            signature: _signature
+        });
+
+        // Mark wallet as verified
+        isVerifiedWallet[msg.sender] = true;
+        verifiedWallets.push(msg.sender);
+
+        emit UserRegistered(msg.sender, _hashedNIK, _signature);
+        emit WalletVerified(msg.sender);
+    }
+    // Fungsi untuk memverifikasi signature
+    function recoverSigner(bytes32 _hashedNIK, bytes memory _signature) public pure returns (address) {
+    bytes32 ethSignedMessageHash = getEthSignedMessageHash(_hashedNIK); // Menambahkan prefix sesuai dengan standar Ethereum
+    return recover(ethSignedMessageHash, _signature);
+    }
+
+
+    // Fungsi untuk mendapatkan Ethereum Signed Message Hash
+    function getEthSignedMessageHash(bytes32 _messageHash) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", _messageHash));
+    }
+
+    // Fungsi untuk mengembalikan address dari signature
+    function recover(bytes32 _ethSignedMessageHash, bytes memory _signature) public pure returns (address) {
+        (bytes32 r, bytes32 s, uint8 v) = splitSignature(_signature);
+        return ecrecover(_ethSignedMessageHash, v, r, s);
+    }
+
+    // Fungsi untuk memecah signature menjadi r, s, dan v
+    function splitSignature(bytes memory _sig) public pure returns (bytes32 r, bytes32 s, uint8 v) {
+        require(_sig.length == 65, "Invalid signature length");
+
+        assembly {
+            r := mload(add(_sig, 32))
+            s := mload(add(_sig, 64))
+            v := byte(0, mload(add(_sig, 96)))
+        }
+    }
+
 
     // Fungsi untuk mengambil semua wallet yang terverifikasi
     function getAllVerifiedWallets() public view returns (address[] memory) {

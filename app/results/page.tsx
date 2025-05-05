@@ -60,19 +60,27 @@ const VotingResults = () => {
   }, []);
 
   return (
-    <div>
-      <h1>Voting Results</h1>
-      {candidates.length > 0 ? (
-        <ul>
-          {candidates.map((candidate) => (
-            <li key={candidate.id}>
-              {candidate.name} - Votes: {candidate.voteCount}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No candidates found.</p>
-      )}
+    <div className="flex items-center justify-center min-h-screen p-6 text-blue-900 dark:text-yellow-300">
+      <div className="rounded-lg text-yellow-500 shadow-lg max-w-xl w-full">
+        <h1 className="text-2xl font-bold mb-4 text-center">Voting Results</h1>
+        {candidates.length > 0 ? (
+          <ul className="space-y-4">
+            {candidates.map((candidate) => (
+              <li
+                key={candidate.id}
+                className="flex justify-between items-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all"
+              >
+                <span className="font-medium">{candidate.name}</span>
+                <span className="text-sm">Votes: {candidate.voteCount}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-center text-gray-500 dark:text-gray-400">
+            No candidates found.
+          </p>
+        )}
+      </div>
     </div>
   );
 };
