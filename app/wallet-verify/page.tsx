@@ -26,7 +26,8 @@ const VerifyWallet = () => {
       } else {
         setMessage(data.error || "Gagal memverifikasi wallet."); // Kesalahan lainnya
       }
-    } catch (error) {
+    } catch {
+      // Using underscore to indicate intentionally unused parameter
       setMessage("Terjadi kesalahan saat mencoba memverifikasi wallet.");
     }
   };

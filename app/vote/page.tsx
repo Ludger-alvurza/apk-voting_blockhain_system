@@ -6,6 +6,11 @@ import MessageDisplay from "../components/MessageDisplay";
 import useVoting from "../hooks/useVoting";
 import BlockInfo from "../components/BlockDataDisplay";
 
+// Define a custom error interface for voting errors
+interface VotingError extends Error {
+  reason?: string;
+}
+
 const VotePage: React.FC = () => {
   const [account, setAccount] = useState<string | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<number | null>(
@@ -88,10 +93,12 @@ const VotePage: React.FC = () => {
     try {
       await voteForCandidate(selectedCandidate);
       setMessage("Vote sudah tercatat! Terima kasih telah berpartisipasi.");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saat voting:", error);
+      // Type cast the error to our custom interface
+      const votingError = error as VotingError;
       setMessage(
-        error?.reason?.includes("Invalid candidate")
+        votingError?.reason?.includes("Invalid candidate")
           ? "Kandidat yang dipilih tidak valid."
           : "Terjadi kesalahan saat voting. Silakan coba lagi."
       );

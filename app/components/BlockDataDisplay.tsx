@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from "react";
 
+interface Block {
+  number: number;
+  hash: string;
+  miner: string;
+  transactions: Array<number>;
+  gasUsed: number;
+  timestamp: number;
+}
+
 const BlockInfo = () => {
-  const [block, setBlock] = useState<any | null>(null);
+  const [block, setBlock] = useState<Block | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fetchWithTimeout = async (
     url: string,
-    options: any,
+    options: RequestInit = {},
     timeout = 5000
   ) => {
     const controller = new AbortController();

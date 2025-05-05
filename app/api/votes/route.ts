@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { connectToContract } from "@/utils/contract";
-require("dotenv").config();
 
 export async function GET() {
   try {

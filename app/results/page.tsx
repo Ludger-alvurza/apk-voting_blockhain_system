@@ -2,6 +2,14 @@
 import { useEffect, useState } from "react";
 import { connectToContract } from "@/utils/contract"; // Sesuaikan dengan path yang tepat
 
+// Define the type for raw candidate data from the contract
+interface RawCandidate {
+  id: { toString: () => string };
+  name: string;
+  voteCount: { toString: () => string };
+}
+
+// Define the type for processed candidate data
 type Candidate = {
   id: string;
   name: string;
@@ -11,19 +19,6 @@ type Candidate = {
 const VotingResults = () => {
   // Set tipe candidates ke Candidate[]
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-
-  const registerCandidates = async () => {
-    const contract = await connectToContract();
-    if (contract) {
-      try {
-        await contract.registerCandidate("Ludger");
-        await contract.registerCandidate("Desi");
-        console.log("Candidates registered");
-      } catch (error) {
-        console.error("Error registering candidates:", error);
-      }
-    }
-  };
 
   // Fungsi untuk mengambil hasil voting
   const fetchResults = async () => {
@@ -39,11 +34,13 @@ const VotingResults = () => {
         }
 
         // Parsing data menjadi bentuk yang sesuai
-        const parsedCandidates = candidatesData.map((candidate: any) => ({
-          id: candidate.id.toString(), // Pastikan id dikonversi dengan toString() jika berupa BigNumber
-          name: candidate.name,
-          voteCount: candidate.voteCount.toString(), // Pastikan voteCount dikonversi dengan toString() jika berupa BigNumber
-        }));
+        const parsedCandidates = candidatesData.map(
+          (candidate: RawCandidate) => ({
+            id: candidate.id.toString(), // Pastikan id dikonversi dengan toString() jika berupa BigNumber
+            name: candidate.name,
+            voteCount: candidate.voteCount.toString(), // Pastikan voteCount dikonversi dengan toString() jika berupa BigNumber
+          })
+        );
 
         setCandidates(parsedCandidates); // Update state dengan data yang sudah diparse
       } catch (error) {

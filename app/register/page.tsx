@@ -7,6 +7,11 @@ import { contractABI, contractAddress } from "@/utils/contract";
 import { useTheme } from "../hooks/hooksThemes";
 import Link from "next/link";
 
+// Define error interface to replace 'any'
+interface RegisterError extends Error {
+  message: string;
+}
+
 const RegisterPage: React.FC = () => {
   const [nik, setNik] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -77,9 +82,10 @@ const RegisterPage: React.FC = () => {
       await tx.wait();
 
       router.push("/dashboard");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Registration error:", err);
-      setError(err.message);
+      const error = err as RegisterError;
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -148,7 +154,7 @@ const RegisterPage: React.FC = () => {
           {loading ? "Registering..." : "Register with MetaMask"}
         </button>
         <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-          already have an account?{" "}
+          Already have an account?{" "}
           <Link
             href="/login"
             className="text-blue-600 dark:text-blue-400 font-medium hover:underline"

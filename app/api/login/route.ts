@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { ethers } from "ethers";
 import { contractABI, contractAddress } from "@/utils/contract";
-import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
   try {

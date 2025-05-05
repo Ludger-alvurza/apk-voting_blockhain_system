@@ -6,6 +6,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTheme } from "../hooks/hooksThemes";
 
+// Define error interface to replace 'any'
+interface LoginError extends Error {
+  message: string;
+}
+
 const LoginPage: React.FC = () => {
   const [nik, setNik] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -67,9 +72,10 @@ const LoginPage: React.FC = () => {
       } else {
         throw new Error("No accounts found. Please connect to MetaMask.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Connect wallet error:", err);
-      setMessage({ text: err.message, type: "error" });
+      const error = err as LoginError;
+      setMessage({ text: error.message, type: "error" });
     } finally {
       setLoading(false);
     }
@@ -139,9 +145,10 @@ const LoginPage: React.FC = () => {
 
       // Redirect without delay
       router.push(data.redirectURL || "/vote");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login error:", err);
-      setMessage({ text: err.message, type: "error" });
+      const error = err as LoginError;
+      setMessage({ text: error.message, type: "error" });
     } finally {
       setLoading(false);
     }
@@ -226,7 +233,7 @@ const LoginPage: React.FC = () => {
         )}
 
         <div className="mt-6 text-center text-sm text-gray-600">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/register" className="text-yellow-600 hover:underline">
             Register here
           </Link>

@@ -1,8 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { connectToContract } from "../../utils/contract";
 
+// Define proper interface for a candidate
+interface Candidate {
+  id: number;
+  name: string;
+  voteCount: number;
+  // Add any other properties your candidates have
+}
+
 const useVoting = (account: string | null) => {
-  const [candidates, setCandidates] = useState<any[]>([]);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [message, setMessage] = useState<string>("");
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
 
@@ -46,8 +54,14 @@ const useVoting = (account: string | null) => {
       return false;
     }
   };
-  const checkIfVerified = async () => {
-    if (!account) return;
+
+  const verificationCheckRef = useRef<boolean>(false);
+
+  const checkIfVerified = useCallback(async () => {
+    if (!account || verificationCheckRef.current) return;
+
+    // Mark that we've started the verification check
+    verificationCheckRef.current = true;
 
     try {
       const response = await fetch(`/api/verify?address=${account}`);
@@ -63,7 +77,7 @@ const useVoting = (account: string | null) => {
       console.error("Error checking verification status:", error);
       setMessage("Terjadi kesalahan saat mengecek status verifikasi.");
     }
-  };
+  }, [account]);
 
   const voteForCandidate = async (candidateId: number): Promise<void> => {
     try {
@@ -83,13 +97,20 @@ const useVoting = (account: string | null) => {
       } else {
         setMessage("Vote sudah tercatat!");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saat voting:", error);
-      setMessage(
-        error?.reason?.includes("Invalid candidate")
-          ? "Kandidat yang dipilih tidak valid."
-          : "Terjadi kesalahan saat voting. Silakan coba lagi."
-      );
+      // Type guard to safely access error properties
+      if (
+        error &&
+        typeof error === "object" &&
+        "reason" in error &&
+        typeof error.reason === "string" &&
+        error.reason.includes("Invalid candidate")
+      ) {
+        setMessage("Kandidat yang dipilih tidak valid.");
+      } else {
+        setMessage("Terjadi kesalahan saat voting. Silakan coba lagi.");
+      }
     }
   };
 
@@ -98,7 +119,12 @@ const useVoting = (account: string | null) => {
       getCandidates();
       checkIfVerified();
     }
-  }, [account]);
+
+    // Reset the verification check flag when account changes
+    return () => {
+      verificationCheckRef.current = false;
+    };
+  }, [account, checkIfVerified]);
 
   return {
     candidates,

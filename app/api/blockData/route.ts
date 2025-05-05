@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createPublicClient, http, Block } from "viem";
 import { sepolia } from "viem/chains";
-require("dotenv").config();
 
 const client = createPublicClient({
   chain: sepolia,
