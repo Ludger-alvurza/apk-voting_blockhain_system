@@ -3,6 +3,7 @@ import "./globals.css";
 import Header from "./components/Header";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { ThemeProvider } from "next-themes";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "Voting App",
@@ -28,6 +29,7 @@ export default function RootLayout({
             <Header />
 
             {children}
+            <SpeedInsights />
           </AuroraBackground>
         </ThemeProvider>
       </body>
