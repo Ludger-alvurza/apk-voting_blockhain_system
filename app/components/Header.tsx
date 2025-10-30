@@ -11,19 +11,17 @@ const Header: React.FC = () => {
   const hideHeader = pathname === "/login" || pathname === "/register";
   const { theme, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const transitionDuration = 300; // ms
 
   // Check login status
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        // Check for auth cookie status by making a request to the server
         const response = await fetch("/api/authcheck", {
           method: "GET",
-          credentials: "include", // Important to include cookies
+          credentials: "include",
         });
 
         if (response.ok) {
@@ -40,7 +38,6 @@ const Header: React.FC = () => {
 
     checkLoginStatus();
 
-    // Listen for custom auth events
     const handleAuthEvent = (event: Event) => {
       const customEvent = event as CustomEvent;
       if (customEvent.detail?.action === "login") {
@@ -50,263 +47,266 @@ const Header: React.FC = () => {
       }
     };
 
-    window.addEventListener(
-      "authStateChange",
-      handleAuthEvent as EventListener
-    );
-
+    window.addEventListener("authStateChange", handleAuthEvent as EventListener);
     return () => {
-      window.removeEventListener(
-        "authStateChange",
-        handleAuthEvent as EventListener
-      );
+      window.removeEventListener("authStateChange", handleAuthEvent as EventListener);
     };
   }, []);
 
-  // Handle menu toggle with animation
-  const handleToggleMenu = () => {
-    if (isMenuOpen) {
-      setIsTransitioning(true);
-      setTimeout(() => {
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+      if (isMenuOpen && window.scrollY > 50) {
         setIsMenuOpen(false);
-        setIsTransitioning(false);
-      }, transitionDuration);
-    } else {
-      setIsMenuOpen(true);
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 50);
-    }
-  };
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isMenuOpen]);
 
   // Close menu when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        if (isMenuOpen && !isTransitioning) {
-          setIsTransitioning(true);
-          setTimeout(() => {
-            setIsMenuOpen(false);
-            setIsTransitioning(false);
-          }, transitionDuration);
-        }
+        setIsMenuOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isMenuOpen, isTransitioning]);
+  }, [isMenuOpen]);
 
-  // Close menu when screen size changes
+  // Close menu on resize
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 768) {
         setIsMenuOpen(false);
-        setIsTransitioning(false);
       }
     };
     window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Close menu when scrolling
-  useEffect(() => {
-    const handleScroll = () => {
-      if (isMenuOpen && !isTransitioning) {
-        setIsTransitioning(true);
-        setTimeout(() => {
-          setIsMenuOpen(false);
-          setIsTransitioning(false);
-        }, transitionDuration);
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [isMenuOpen, isTransitioning]);
-
-  if (hideHeader) return null; // Don't render Header on login/register pages
+  if (hideHeader) return null;
 
   const navLinks = [
-    { path: "/", label: "Home" },
-    { path: "/about", label: "About" },
-    { path: "/vote", label: "Vote" },
-    { path: "/results", label: "Results" },
+    { path: "/", label: "Home", icon: "🏠" },
+    { path: "/about", label: "About", icon: "ℹ️" },
+    { path: "/vote", label: "Vote", icon: "🗳️" },
+    { path: "/results", label: "Results", icon: "📊" },
   ];
 
   return (
-    <header className="bg-gray-800 text-white w-full fixed top-0 left-0 right-0 z-50 py-3 px-4 shadow-lg">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center">
-          {/* Title */}
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-yellow-400 tracking-wide">
-            Vote Dapp
-          </h1>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={handleToggleMenu}
-            className="md:hidden text-white focus:outline-none transition-transform duration-300 ease-in-out"
-            aria-label="Toggle Menu"
-          >
-            <svg
-              className={`w-6 h-6 transition-transform duration-300 ${
-                isMenuOpen ? "rotate-90" : "rotate-0"
-              }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              {isMenuOpen ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              )}
-            </svg>
-          </button>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-2 lg:space-x-4">
-            {navLinks.map((link) => (
-              <a
-                key={link.path}
-                href={link.path}
-                className={`text-sm font-medium px-2 py-1 lg:px-3 lg:py-2 rounded-md transition-colors ${
-                  pathname === link.path
-                    ? "text-black bg-yellow-400"
-                    : "text-white hover:text-yellow-400"
-                }`}
-              >
-                {link.label}
-              </a>
-            ))}
-
-            {/* Theme Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              className="text-xs font-medium px-2 py-1 lg:px-3 lg:py-2 rounded-md shadow-md bg-blue-500 text-white dark:bg-yellow-500 dark:text-black hover:bg-blue-600 dark:hover:bg-yellow-600 transition-colors"
-            >
-              {theme === "light" ? "Dark" : "Light"}
-            </button>
-
-            {/* Logout Button or Login Button */}
-            {isLoggedIn ? (
-              <div className="ml-1">
-                <LogoutButton />
+    <>
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${
+          isScrolled
+            ? "bg-white/80 dark:bg-gray-900/90 backdrop-blur-lg shadow-xl"
+            : "bg-white/70 dark:bg-gray-900/80 backdrop-blur-md shadow-lg"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <Link href="/" className="group flex items-center space-x-2">
+              <div className="relative">
+                <div className="absolute inset-0 bg-yellow-400 dark:bg-yellow-500 rounded-lg blur-sm opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
+                <div className="relative bg-gradient-to-br from-yellow-400 to-yellow-600 dark:from-yellow-500 dark:to-yellow-700 rounded-lg p-2 transform group-hover:scale-110 transition-transform duration-300">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
               </div>
-            ) : (
-              <Link
-                href="/login"
-                className="ml-1 text-xs font-medium px-2 py-1 lg:px-3 lg:py-2 rounded-md shadow-md bg-green-500 text-white hover:bg-green-600 transition-colors"
+              <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 dark:from-yellow-300 dark:to-yellow-500 bg-clip-text text-transparent">
+                Vote Dapp
+              </span>
+            </Link>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center space-x-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  href={link.path}
+                  className={`relative px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 group ${
+                    pathname === link.path
+                      ? "text-gray-900 dark:text-white"
+                      : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                  }`}
+                >
+                  <span className="relative z-10 flex items-center space-x-1">
+                    <span>{link.icon}</span>
+                    <span>{link.label}</span>
+                  </span>
+                  {pathname === link.path && (
+                    <span className="absolute inset-0 bg-yellow-400/20 dark:bg-yellow-500/20 rounded-lg"></span>
+                  )}
+                  <span className="absolute inset-0 bg-gray-100 dark:bg-gray-800 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                </Link>
+              ))}
+
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="ml-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 transform hover:scale-110"
+                aria-label="Toggle theme"
               >
-                Login
-              </Link>
-            )}
-          </nav>
+                {theme === "light" ? (
+                  <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                )}
+              </button>
+
+              {/* Auth Button */}
+              {isLoggedIn ? (
+                <div className="ml-2">
+                  <LogoutButton />
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="ml-2 px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-white font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                >
+                  Login
+                </Link>
+              )}
+            </nav>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300"
+              aria-label="Toggle menu"
+            >
+              <svg
+                className={`w-6 h-6 text-gray-700 dark:text-gray-300 transition-transform duration-300 ${
+                  isMenuOpen ? "rotate-90" : "rotate-0"
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                {isMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
 
-        {/* Mobile Navigation Menu with Transition */}
+        {/* Mobile Menu */}
         <div
           ref={menuRef}
-          className={`md:hidden absolute left-0 right-0 top-full bg-gray-800 shadow-lg border-t border-gray-700 z-50 transition-all duration-300 ease-in-out overflow-hidden ${
-            isMenuOpen
-              ? "max-h-screen opacity-100"
-              : "max-h-0 opacity-0 pointer-events-none"
+          className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out ${
+            isMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
           }`}
-          style={{
-            maxHeight: isMenuOpen ? "calc(100vh - 64px)" : "0px",
-            overflowY: "auto",
-            transitionProperty: "max-height, opacity",
-          }}
         >
-          <nav
-            className={`flex flex-col py-1 transform transition-transform duration-300 ease-in-out ${
-              isMenuOpen ? "translate-y-0" : "-translate-y-4"
-            }`}
-          >
-            {navLinks.map((link, index) => (
-              <a
-                key={link.path}
-                href={link.path}
-                onClick={handleToggleMenu}
-                className={`py-3 px-4 border-b border-gray-700 transition-all duration-200 ease-in-out ${
-                  pathname === link.path
-                    ? "bg-yellow-400 text-black"
-                    : "text-white hover:bg-gray-700"
-                }`}
-                style={{
-                  transitionDelay: `${50 + index * 50}ms`,
-                  opacity: isMenuOpen ? "1" : "0",
-                }}
-              >
-                {link.label}
-              </a>
-            ))}
+          <div className="px-4 py-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 shadow-xl">
+            <nav className="space-y-1">
+              {navLinks.map((link, index) => (
+                <Link
+                  key={link.path}
+                  href={link.path}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition-all duration-300 transform ${
+                    pathname === link.path
+                      ? "bg-yellow-400/20 dark:bg-yellow-500/20 text-gray-900 dark:text-white scale-105"
+                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-105"
+                  }`}
+                  style={{
+                    transitionDelay: `${index * 50}ms`,
+                    opacity: isMenuOpen ? 1 : 0,
+                    transform: isMenuOpen ? "translateX(0)" : "translateX(-20px)",
+                  }}
+                >
+                  <span className="text-xl">{link.icon}</span>
+                  <span>{link.label}</span>
+                </Link>
+              ))}
 
-            <button
-              onClick={() => {
-                toggleTheme();
-                handleToggleMenu();
-              }}
-              className="py-3 px-4 text-left border-b border-gray-700 text-white hover:bg-gray-700 transition-all duration-200 ease-in-out"
-              style={{
-                transitionDelay: `${50 + navLinks.length * 50}ms`,
-                opacity: isMenuOpen ? "1" : "0",
-              }}
-            >
-              {theme === "light"
-                ? "Switch to Dark Mode"
-                : "Switch to Light Mode"}
-            </button>
+              {/* Mobile Theme Toggle */}
+              <button
+                onClick={() => {
+                  toggleTheme();
+                  setIsMenuOpen(false);
+                }}
+                className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 transform hover:scale-105"
+                style={{
+                  transitionDelay: `${navLinks.length * 50}ms`,
+                  opacity: isMenuOpen ? 1 : 0,
+                  transform: isMenuOpen ? "translateX(0)" : "translateX(-20px)",
+                }}
+              >
+                {theme === "light" ? (
+                  <>
+                    <span className="text-xl">🌙</span>
+                    <span>Dark Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xl">☀️</span>
+                    <span>Light Mode</span>
+                  </>
+                )}
+              </button>
 
-            {/* Conditional rendering for logout/login buttons */}
-            {isLoggedIn ? (
-              <div
-                className="py-3 px-4 transition-all duration-200 ease-in-out"
-                onClick={handleToggleMenu}
-                style={{
-                  transitionDelay: `${50 + (navLinks.length + 1) * 50}ms`,
-                  opacity: isMenuOpen ? "1" : "0",
-                }}
-              >
-                <LogoutButton />
-              </div>
-            ) : (
-              <Link
-                href="/login"
-                className="py-3 px-4 block text-left text-white hover:bg-gray-700 transition-all duration-200 ease-in-out font-medium"
-                onClick={handleToggleMenu}
-                style={{
-                  transitionDelay: `${50 + (navLinks.length + 1) * 50}ms`,
-                  opacity: isMenuOpen ? "1" : "0",
-                }}
-              >
-                Login
-              </Link>
-            )}
-          </nav>
+              {/* Mobile Auth Button */}
+              {isLoggedIn ? (
+                <div
+                  className="pt-2"
+                  onClick={() => setIsMenuOpen(false)}
+                  style={{
+                    transitionDelay: `${(navLinks.length + 1) * 50}ms`,
+                    opacity: isMenuOpen ? 1 : 0,
+                    transform: isMenuOpen ? "translateX(0)" : "translateX(-20px)",
+                  }}
+                >
+                  <LogoutButton />
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center justify-center space-x-2 px-4 py-3 rounded-lg bg-gradient-to-r from-yellow-400 to-yellow-600 text-white font-medium transition-all duration-300 transform hover:scale-105 shadow-lg"
+                  style={{
+                    transitionDelay: `${(navLinks.length + 1) * 50}ms`,
+                    opacity: isMenuOpen ? 1 : 0,
+                    transform: isMenuOpen ? "translateX(0)" : "translateX(-20px)",
+                  }}
+                >
+                  <span className="text-xl">🔐</span>
+                  <span>Login</span>
+                </Link>
+              )}
+            </nav>
+          </div>
         </div>
-      </div>
+      </header>
 
-      {/* Spacer for content not to be hidden by fixed header */}
-      <div className="h-16 md:h-16" />
-    </header>
+      {/* Spacer */}
+      <div className="h-16" />
+    </>
   );
 };
 

@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     try {
       // Create a provider to connect to the blockchain
       const provider = new ethers.JsonRpcProvider(
-        `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+        `https://polygon-amoy.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
       );
 
       // Connect to the smart contract

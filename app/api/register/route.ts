@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       // Create a provider to connect to the blockchain
       // Use environment variable for RPC URL or default to localhost
       const provider = new ethers.JsonRpcProvider(
-        `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+        `https://polygon-amoy.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
       );
 
       // Connect to the smart contract

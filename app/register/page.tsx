@@ -7,11 +7,6 @@ import { contractABI, contractAddress } from "@/utils/contract";
 import { useTheme } from "../hooks/hooksThemes";
 import Link from "next/link";
 
-// Define error interface to replace 'any'
-interface RegisterError extends Error {
-  message: string;
-}
-
 const RegisterPage: React.FC = () => {
   const [nik, setNik] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -19,6 +14,54 @@ const RegisterPage: React.FC = () => {
   const [isRegistered, setIsRegistered] = useState(false);
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
+
+  const getUserFriendlyError = (error: unknown): string => {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : typeof error === "string"
+        ? error
+        : String(error);
+
+    // MetaMask/Wallet errors
+    if (
+      errorMessage.includes("user rejected") ||
+      errorMessage.includes("User rejected")
+    ) {
+      return "Kamu membatalkan transaksi. Silakan coba lagi.";
+    }
+    if (errorMessage.includes("MetaMask is not installed")) {
+      return "MetaMask belum terinstall. Silakan install MetaMask terlebih dahulu.";
+    }
+    if (errorMessage.includes("insufficient funds")) {
+      return "Saldo tidak cukup untuk melakukan transaksi.";
+    }
+
+    // Validation errors
+    if (errorMessage.includes("NIK is required")) {
+      return "NIK wajib diisi. Silakan masukkan NIK kamu.";
+    }
+    if (errorMessage.includes("NIK tidak boleh mengandung spasi")) {
+      return "NIK tidak boleh mengandung spasi. Silakan periksa kembali.";
+    }
+    if (errorMessage.includes("NIK harus berupa angka saja")) {
+      return "NIK harus berupa angka saja. Silakan periksa kembali.";
+    }
+    if (errorMessage.includes("NIK harus 16 digit")) {
+      return "NIK harus 16 digit. Silakan periksa kembali.";
+    }
+    if (errorMessage.includes("already registered")) {
+      return "Akun sudah terdaftar. Silakan login.";
+    }
+
+    // Network errors
+    if (errorMessage.includes("network") || errorMessage.includes("Network")) {
+      return "Koneksi bermasalah. Periksa internet kamu dan coba lagi.";
+    }
+
+    // Default error
+    return "Terjadi kesalahan. Silakan coba lagi atau hubungi admin.";
+  };
 
   const handleRegister = async () => {
     setLoading(true);
@@ -36,6 +79,21 @@ const RegisterPage: React.FC = () => {
 
       if (!nik) {
         throw new Error("NIK is required.");
+      }
+
+      // Validasi NIK tidak boleh ada spasi
+      if (/\s/.test(nik)) {
+        throw new Error("NIK tidak boleh mengandung spasi.");
+      }
+
+      // Validasi NIK hanya angka (opsional, tergantung format NIK lo)
+      if (!/^\d+$/.test(nik)) {
+        throw new Error("NIK harus berupa angka saja.");
+      }
+
+      // Validasi panjang NIK (NIK Indonesia 16 digit)
+      if (nik.length !== 16) {
+        throw new Error("NIK harus 16 digit.");
       }
 
       // Hash NIK using keccak256
@@ -64,7 +122,7 @@ const RegisterPage: React.FC = () => {
       // Check if user is already registered
       if (validationResponse.status === 409 && data.isRegistered) {
         setIsRegistered(true);
-        setError(data.error);
+        setError("Akun sudah terdaftar. Silakan login.");
         return;
       }
 
@@ -81,11 +139,11 @@ const RegisterPage: React.FC = () => {
       const tx = await contract.registerUser(hashedNIK, signature);
       await tx.wait();
 
-      router.push("/dashboard");
+      router.push("/login");
     } catch (err: unknown) {
       console.error("Registration error:", err);
-      const error = err as RegisterError;
-      setError(error.message);
+      const friendlyError = getUserFriendlyError(err);
+      setError(friendlyError);
     } finally {
       setLoading(false);
     }
