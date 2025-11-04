@@ -180,14 +180,14 @@ const VotePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-all">
+    <div className="min-h-screen from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-all">
       {/* Header Section */}
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-4xl font-extrabold text-yellow-500 dark:text-white mb-2">
             Sistem E-Voting
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-yellow-500 dark:text-gray-400">
             Pilih kandidat pilihanmu dengan aman menggunakan blockchain
           </p>
         </div>
