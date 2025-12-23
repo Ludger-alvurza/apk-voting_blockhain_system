@@ -8,7 +8,7 @@ const PROTECTED_PATHS = ["/vote", "/results"];
 // Paths that should NOT be accessible when logged in
 const AUTH_PATHS = ["/login", "/register"];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const authToken = request.cookies.get("auth_token")?.value;
 
