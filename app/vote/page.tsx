@@ -28,8 +28,8 @@ const VotePage: React.FC = () => {
     isVerified,
   } = useVoting(account);
 
-  const switchToAmoy = async () => {
-    const chainId = "0x13882"; // Polygon Amoy Testnet chain ID
+  const switchToSepolia = async () => {
+    const chainId = "0xaa36a7"; // Sepolia Testnet chain ID
     try {
       const currentChainId = await window.ethereum.request({
         method: "eth_chainId",
@@ -42,7 +42,7 @@ const VotePage: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error("Error switching to Polygon Amoy:", error);
+      console.error("Error switching to Sepolia:", error);
 
       type ProviderRpcError = {
         code?: number;
@@ -58,15 +58,15 @@ const VotePage: React.FC = () => {
             method: "wallet_addEthereumChain",
             params: [
               {
-                chainId: "0x13882",
-                chainName: "Polygon Amoy Testnet",
+                chainId: "0xaa36a7",
+                chainName: "Sepolia Testnet",
                 nativeCurrency: {
-                  name: "MATIC",
-                  symbol: "MATIC",
+                  name: "ETH",
+                  symbol: "ETH",
                   decimals: 18,
                 },
-                rpcUrls: ["https://rpc-amoy.polygon.technology"],
-                blockExplorerUrls: ["https://amoy.polygonscan.com/"],
+                rpcUrls: ["https://sepolia.infura.io/v3/"],
+                blockExplorerUrls: ["https://sepolia.etherscan.io/"],
               },
             ],
           });
@@ -75,13 +75,13 @@ const VotePage: React.FC = () => {
             params: [{ chainId }],
           });
         } catch (addError) {
-          console.error("Failed to add Polygon Amoy network:", addError);
-          alert("Gagal menambahkan jaringan Polygon Amoy ke MetaMask.");
+          console.error("Failed to add Sepolia network:", addError);
+          alert("Gagal menambahkan jaringan Sepolia ke MetaMask.");
         }
       } else {
         console.error("Failed to switch network:", error);
         alert(
-          "Failed to switch network. Ensure MetaMask is properly configured for Polygon Amoy."
+          "Failed to switch network. Ensure MetaMask is properly configured for Sepolia."
         );
       }
     }
@@ -90,7 +90,7 @@ const VotePage: React.FC = () => {
   const connectWallet = async () => {
     if (typeof window.ethereum !== "undefined") {
       try {
-        await switchToAmoy();
+        await switchToSepolia();
         const accounts = await window.ethereum.request({
           method: "eth_requestAccounts",
         });
@@ -101,7 +101,7 @@ const VotePage: React.FC = () => {
           error
         );
         alert(
-          "Error connecting to wallet. Please ensure your MetaMask network is set to Amoy."
+          "Error connecting to wallet. Please ensure your MetaMask network is set to Sepolia."
         );
       }
     } else {
@@ -118,7 +118,7 @@ const VotePage: React.FC = () => {
   const switchWallet = async () => {
     if (typeof window.ethereum !== "undefined") {
       try {
-        await switchToAmoy();
+        await switchToSepolia();
         await window.ethereum.request({
           method: "wallet_requestPermissions",
           params: [{ eth_accounts: {} }],

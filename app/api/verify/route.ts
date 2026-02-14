@@ -12,7 +12,7 @@ if (!keyPrivate) {
 
 // Initialize the provider and contract instance
 const provider = new ethers.JsonRpcProvider(
-  `https://polygon-amoy.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+  `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
 );
 const signer = new ethers.Wallet(keyPrivate, provider);
 

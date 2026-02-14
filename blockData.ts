@@ -1,10 +1,10 @@
 import { createPublicClient, http, Block } from "viem";
-import { polygonAmoy } from "viem/chains";
+import { sepolia } from "viem/chains";
 
 const client = createPublicClient({
-  chain: polygonAmoy,
+  chain: sepolia,
   transport: http(
-    `https://polygon-amoy.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+    `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
   ),
 });
 
